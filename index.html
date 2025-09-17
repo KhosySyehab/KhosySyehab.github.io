@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Farming Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(180deg, #8092e4 0%, #4463e9 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding-top: 70px;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: linear-gradient(90deg, #0c253f 0%, #34495e 100%) !important;
+      box-shadow: 0 2px 10px rgba(0, 255, 255, 0.3);
+    }
+    .navbar-brand {
+      font-weight: bold;
+      color: #0ff !important;
+      text-shadow: 0 0 8px #0ff, 0 0 15px #00f6ff;
+    }
+    .navbar-nav .nav-link {
+      color: rgba(255, 255, 255, 0.8) !important;
+      transition: all 0.3s ease;
+    }
+    .navbar-nav .nav-link:hover,
+    .navbar-nav .nav-link.active {
+      color: #fff !important;
+      text-shadow: 0 0 6px #0ff;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: linear-gradient(135deg, #0d1b58 0%, #484783 100%);
+      min-height: calc(100vh - 70px);
+      position: fixed;
+      top: 70px;
+      left: 0;
+      width: 220px;
+      z-index: 1000;
+      padding: 20px 15px;
+    }
+    .sidebar .nav-link {
+      color: rgba(255, 255, 255, 0.8);
+      margin: 5px 0;
+      border-radius: 8px;
+      padding: 10px 15px;
+      transition: all 0.3s ease;
+    }
+    .sidebar .nav-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      text-decoration: none;
+    }
+    .sidebar .nav-link i {
+      margin-right: 10px;
+      width: 16px;
+    }
+    .sidebar h5 {
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Content area */
+    .content {
+      margin-left: 220px;
+      padding: 20px;
+    }
+
+    .dashboard-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin: 0 auto;
+      max-width: 1400px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      color: #2c3e50;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    /* Metric Cards */
+    .metric-card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-left: 4px solid;
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+    }
+    .metric-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    .metric-card.temp { border-left-color: #ff6b6b; }
+    .metric-card.humidity { border-left-color: #4ecdc4; }
+    .metric-card.network { border-left-color: #45b7d1; }
+    .metric-card.light { border-left-color: #f9ca24; }
+    .metric-card.oxygen { border-left-color: #6c5ce7; }
+    .metric-card.ph { border-left-color: #fd79a8; }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: #666;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .metric-icon {
+      margin-right: 8px;
+      font-size: 1rem;
+    }
+    
+    .metric-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: baseline;
+    }
+    
+    .metric-unit {
+      font-size: 0.8rem;
+      color: #666;
+      margin-left: 4px;
+      font-weight: 400;
+    }
+    
+    .progress-bar-container {
+      height: 6px;
+      background: #ecf0f1;
+      border-radius: 3px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+
+    .row-equal-height {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    
+    .row-equal-height > [class*='col-'] {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-indicator {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 12px;
+      height: 12px;
+      background: #27ae60;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(39, 174, 96, 0.6);
+    }
+
+    /* Responsive design */
+    @media (max-width: 992px) {
+      .sidebar {
+        width: 180px;
+      }
+      .content {
+        margin-left: 180px;
+      }
+      .dashboard-container {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      .sidebar.show {
+        transform: translateX(0);
+      }
+      .content {
+        margin-left: 0;
+      }
+      .dashboard-container {
+        padding: 1rem;
+        margin: 10px;
+        border-radius: 15px;
+      }
+      .metric-value {
+        font-size: 1.8rem;
+      }
+      body {
+        padding-top: 60px;
+      }
+      .sidebar {
+        top: 60px;
+        min-height: calc(100vh - 60px);
+      }
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1001;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 1.2rem;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="fas fa-leaf"></i> Smart Farming</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+              data-bs-target="#navbarNav" aria-controls="navbarNav" 
+              aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="sidebar" id="sidebar">
+    <h5 class="text-white"><i class="fas fa-sliders-h"></i> Control Panel</h5>
+    <ul class="nav flex-column">
+      <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-thermometer-half"></i> Sensor Settings</a></li>
+      <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-tint"></i> Irrigation</a></li>
+      <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-sun"></i> Lighting</a></li>
+      <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-wind"></i> Ventilation</a></li>
+      <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-database"></i> Data Logs</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    <div class="dashboard-container">
+      <div class="header">
+        <h1><i class="fas fa-leaf text-success"></i> Smart Farming Dashboard</h1>
+        <p>Real-time monitoring of your agricultural environment</p>
+      </div>
+      
+      <div class="row row-equal-height">
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card temp">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-temperature-high metric-icon"></i>
+              Air Temperature
+            </div>
+            <div class="metric-value">
+              25<span class="metric-unit">°C</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 62.5%; background: #ff6b6b;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card humidity">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-tint metric-icon"></i>
+              Air Humidity
+            </div>
+            <div class="metric-value">
+              65<span class="metric-unit">%</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 65%; background: #4ecdc4;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card light">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-sun metric-icon"></i>
+              Light Intensity
+            </div>
+            <div class="metric-value">
+              850<span class="metric-unit">Lux</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 85%; background: #f9ca24;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card oxygen">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-wind metric-icon"></i>
+              Dissolved Oxygen
+            </div>
+            <div class="metric-value">
+              8.2<span class="metric-unit">mg/L</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 82%; background: #6c5ce7;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card temp">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-thermometer-half metric-icon"></i>
+              Soil Temperature
+            </div>
+            <div class="metric-value">
+              22<span class="metric-unit">°C</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 55%; background: #ff6b6b;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card ph">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-vial metric-icon"></i>
+              Soil pH Level
+            </div>
+            <div class="metric-value">
+              6.8<span class="metric-unit">pH</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 68%; background: #fd79a8;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card humidity">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-tint metric-icon"></i>
+              Soil Moisture
+            </div>
+            <div class="metric-value">
+              45<span class="metric-unit">%</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 45%; background: #4ecdc4;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card network">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-wifi metric-icon"></i>
+              WiFi Signal Strength
+            </div>
+            <div class="metric-value">
+              -45<span class="metric-unit">dBm</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 88%; background: #45b7d1;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="metric-card oxygen">
+            <div class="status-indicator"></div>
+            <div class="metric-label">
+              <i class="fas fa-leaf metric-icon"></i>
+              Nutrient Level (NPK)
+            </div>
+            <div class="metric-value">
+              320<span class="metric-unit">ppm</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 64%; background: #6c5ce7;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-4">
+        <p class="text-muted">
+          <i class="fas fa-clock"></i> Last updated: <span id="lastUpdate"></span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('lastUpdate').textContent = now.toLocaleString('en-US', {
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit'
+      });
+    }
+
+    function simulateDataUpdate() {
+      const cards = document.querySelectorAll('.metric-card');
+      cards.forEach(card => {
+        const progressBar = card.querySelector('.progress-bar-fill');
+        const valueElement = card.querySelector('.metric-value');
+        const unitElement = valueElement.querySelector('.metric-unit');
+        
+        if (progressBar && valueElement) {
+          const currentWidth = parseFloat(progressBar.style.width) || 50;
+          const variation = (Math.random() - 0.5) * 10;
+          const newWidth = Math.max(5, Math.min(95, currentWidth + variation));
+          
+          progressBar.style.width = newWidth + '%';
+          
+          // Update values based on sensor type
+          const label = card.querySelector('.metric-label').textContent.toLowerCase();
+          let newValue;
+          
+          if (label.includes('temperature')) {
+            newValue = Math.round((newWidth * 0.6) + 10); // 10-46°C range
+            valueElement.innerHTML = newValue + (unitElement ? unitElement.outerHTML : '');
+          } else if (label.includes('humidity') || label.includes('moisture')) {
+            newValue = Math.round(newWidth);
+            valueElement.innerHTML = newValue + (unitElement ? unitElement.outerHTML : '');
+          } else if (label.includes('light')) {
+            newValue = Math.round(newWidth * 12); // 0-1140 Lux
+            valueElement.innerHTML = newValue + (unitElement ? unitElement.outerHTML : '');
+          } else if (label.includes('oxygen')) {
+            newValue = (newWidth * 0.12).toFixed(1); // 0-11.4 mg/L
+            valueElement.innerHTML = newValue + (unitElement ? unitElement.outerHTML : '');
+          } else if (label.includes('ph')) {
+            newValue = (4 + (newWidth * 0.06)).toFixed(1); // 4.0-9.7 pH
+            valueElement.innerHTML = newValue + (unitElement ? unitElement.outerHTML : '');
+          } else if (label.includes('wifi')) {
+            newValue = Math.round(-20 - (100 - newWidth) * 0.8); // -20 to -100 dBm
+            valueElement.innerHTML = newValue + (unitElement ? unitElement.outerHTML : '');
+          } else if (label.includes('nutrient')) {
+            newValue = Math.round(newWidth * 8); // 0-760 ppm
+            valueElement.innerHTML = newValue + (unitElement ? unitElement.outerHTML : '');
+          }
+        }
+      });
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('show');
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebar');
+      const toggleBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (window.innerWidth <= 768 && 
+          !sidebar.contains(event.target) && 
+          !toggleBtn.contains(event.target) &&
+          sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+      }
+    });
+
+    // Initialize
+    updateTime();
+    setInterval(updateTime, 1000);
+    setInterval(simulateDataUpdate, 5000);
+  </script>
+</body>
+</html>
